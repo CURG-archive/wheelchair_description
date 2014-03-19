@@ -16,10 +16,24 @@
     <xacro:property name="robot_base_offset_height" value="0.05" />
     <xacro:property name="robot_wheelbase_offset" value="0.15" />
 
+    <!-- footrest -->
+    <xacro:property name="footrest_length" value="0.2" />
+    <xacro:property name="footrest_width" value="0.31" />
+    <xacro:property name="footrest_height" value="0.01" />
+    <xacro:property name="footrest_offset" value="0.02" />
+
+    <!-- sonar -->
+    <xacro:property name="sonar_length" value="0.015" />
+    <xacro:property name="sonar_width" value="0.045" />
+    <xacro:property name="sonar_height" value="0.02" />
+    <xacro:property name="sonar_fwd_offset" value="0.0325" />
+    <xacro:property name="sonar_side_fwd_offset" value="0.04" />
+    <xacro:property name="sonar_side_offset" value="0.055" />
+    <xacro:property name="sonar_angle" value="0.7" />
+
     <!-- kinect -->
     <xacro:property name="kinect_stand_height" value="1.18" />
     <xacro:property name="kinect_stand_diameter" value="0.039" />
-    <xacro:property name="kinect_angle" value="0.45" />
 
     <!-- chair -->
     <xacro:property name="backrest_height" value="0.65" />
@@ -170,6 +184,71 @@
         <xacro:color_dark_gray />
     </xacro:prism>
 
+    <!-- footrest and sonar -->
+    <xacro:prism
+        name="wheelchair_footrest"
+        x="${footrest_length}"
+        y="${footrest_width}"
+        z="${footrest_height}">
+        <xacro:color_black />
+    </xacro:prism>
+
+    <joint name="footrest_joint" type="fixed">
+        <parent link="wheelchair_base" />
+        <child link="wheelchair_footrest" />
+        <origin
+            xyz="${(footrest_length + robot_base_length)/2} 0 ${-robot_base_height/2 + footrest_height/2 + footrest_offset}"
+            rpy="0 0 0" />
+    </joint>
+
+    <xacro:prism
+        name="sonar_center"
+        x="${sonar_length}"
+        y="${sonar_width}"
+        z="${sonar_height}">
+        <xacro:color_blue />
+    </xacro:prism>
+
+    <joint name="center_sonar_joint" type="fixed">
+        <parent link="wheelchair_footrest" />
+        <child link="sonar_center" />
+        <origin
+            xyz="${sonar_fwd_offset + sonar_length/2} 0 ${-(footrest_height + sonar_height)/2}"
+            rpy="0 0 0" />
+    </joint>
+
+    <xacro:prism
+        name="sonar_left"
+        x="${sonar_length}"
+        y="${sonar_width}"
+        z="${sonar_height}">
+        <xacro:color_blue />
+    </xacro:prism>
+
+    <joint name="left_sonar_joint" type="fixed">
+        <parent link="wheelchair_footrest" />
+        <child link="sonar_left" />
+        <origin
+            xyz="${sonar_side_fwd_offset + sonar_length/2} ${(sonar_side_offset - sonar_width / 2)} ${-(footrest_height + sonar_height)/2}"
+            rpy="0 0 ${sonar_angle}" />
+    </joint>
+
+    <xacro:prism
+        name="sonar_right"
+        x="${sonar_length}"
+        y="${sonar_width}"
+        z="${sonar_height}">
+        <xacro:color_blue />
+    </xacro:prism>
+
+    <joint name="right_sonar_joint" type="fixed">
+        <parent link="wheelchair_footrest" />
+        <child link="sonar_right" />
+        <origin
+            xyz="${sonar_side_fwd_offset + sonar_length/2} ${-(sonar_side_offset - sonar_width / 2)} ${-(footrest_height + sonar_height)/2}"
+            rpy="0 0 ${-sonar_angle}" />
+    </joint>
+
     <!-- Left wheel of the wheelchair -->
     <xacro:cyl
         name="wheelchair_left_wheel"
@@ -184,7 +263,7 @@
         <origin
             xyz="${robot_wheelbase_offset} ${((robot_base_width + wheel_thickness) / 2)} ${-(robot_base_offset_height + (robot_base_height / 2)) + (wheel_diameter / 2)}"
             rpy="${-halfpi} 0 0" />
-        <axis xyz="${-halfpi} 0 0" />
+        <axis xyz="1 0 0" />
     </joint>
 
     <!-- Right wheel of the wheelchair -->
@@ -201,7 +280,7 @@
         <origin
             xyz="${robot_wheelbase_offset} ${-((robot_base_width + wheel_thickness) / 2)} ${-(robot_base_offset_height + (robot_base_height / 2)) + (wheel_diameter / 2)}"
             rpy="${halfpi} 0 0" />
-        <axis xyz="${halfpi} 0 0" />
+        <axis xyz="1 0 0" />
     </joint>
 
     <!-- Upright part of the wheelchair's chair -->
@@ -277,11 +356,13 @@
         <xacro:color_black />
     </xacro:prism>
 
-    <joint name="kinect_joint" type="fixed">
+    <joint name="kinect_joint" type="revolute">
         <parent link="kinect_stand" />
         <child link="camera_link" />
         <origin
             xyz="0 0 ${kinect_stand_height / 2}"
-            rpy="0 ${kinect_angle} 0" />
+            rpy="0 0 0" />
+        <axis xyz="0 1 0" />
+        <limit lower="${-sixthpi}" upper="${sixthpi}" effort="1" velocity="1" />
     </joint>
 </robot>
